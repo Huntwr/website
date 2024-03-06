@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving Line</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+    }
+
+    #line {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background-color: green;
+    }
+  </style>
+</head>
+<body>
+  <div id="line"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var line = document.getElementById('line');
+      
+      // Set initial position
+      var posX = window.innerWidth / 2;
+      var posY = window.innerHeight / 2;
+      
+      // Set initial velocity
+      var velX = Math.random() * 6 - 3;
+      var velY = Math.random() * 6 - 3;
+
+      // Set initial size and speed modifiers
+      var sizeModifier = 1;
+      var speedModifier = 1;
+
+      function moveLine() {
+        // Update position
+        posX += velX * speedModifier;
+        posY += velY * speedModifier;
+        
+        // Bounce off walls
+        if (posX >= window.innerWidth || posX <= 0) {
+          velX *= -1;
+          sizeModifier *= 1.1; // Increase size
+          speedModifier *= 1.1; // Increase speed
+        }
+        if (posY >= window.innerHeight || posY <= 0) {
+          velY *= -1;
+          sizeModifier *= 1.1; // Increase size
+          speedModifier *= 1.1; // Increase speed
+        }
+        
+        // Create a new line element and append it to the body
+        var newLine = document.createElement('div');
+        newLine.style.position = 'absolute';
+        newLine.style.width = 2 * sizeModifier + 'px'; // Increase size
+        newLine.style.height = 2 * sizeModifier + 'px'; // Increase size
+        newLine.style.backgroundColor = getRandomColor(); // Change color randomly
+        newLine.style.left = posX + 'px';
+        newLine.style.top = posY + 'px';
+        document.body.appendChild(newLine);
+
+        // Remove old lines to prevent too many from building up
+        
+      }
+
+      // Update line position every 20 milliseconds
+      setInterval(moveLine, 20);
+
+      // Function to generate random color
+      function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+    });
+  </script>
+</body>
+</html>

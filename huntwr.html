@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Huntwr.html</title>
+</head>
+<body>
+    <div style="text-align: center;">
+        <img width="400" src="fire.gif" alt="Your GIF">
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <form id="passwordForm">
+            <input type="password" id="passwordInput" placeholder="Password">
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("passwordForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            var password = document.getElementById("passwordInput").value;
+
+            if (password === "fart") {
+                window.location.href = "main.html"; // Redirect to a different website
+            } else {
+                alert("Wrong password. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>

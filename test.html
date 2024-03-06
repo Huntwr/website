@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drag and Drop Image Buttons</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scroll bars */
+        }
+
+        .button {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <img id="button1" class="button" src="button1.gif" draggable="true" ondragstart="drag(event)" onclick="window.location.href='http://www.example.com/page1'">
+    <img id="button2" class="button" src="button2.gif" draggable="true" ondragstart="drag(event)" onclick="window.location.href='http://www.example.com/page2'">
+    <img id="button3" class="button" src="button3.gif" draggable="true" ondragstart="drag(event)" onclick="window.location.href='http://www.example.com/page3'">
+    <img id="button4" class="button" src="button4.gif" draggable="true" ondragstart="drag(event)" onclick="window.location.href='http://www.example.com/page4'">
+    <img id="button5" class="button" src="button5.gif" draggable="true" ondragstart="drag(event)" onclick="window.location.href='http://www.example.com/page5'">
+
+    <script>
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        document.addEventListener("dragover", function(event) {
+            event.preventDefault();
+        });
+
+        document.addEventListener("drop", function(event) {
+            event.preventDefault();
+            var data = event.dataTransfer.getData("text");
+            var draggableElement = document.getElementById(data);
+            var randomX = Math.random() * (window.innerWidth - draggableElement.offsetWidth);
+            var randomY = Math.random() * (window.innerHeight - draggableElement.offsetHeight);
+            draggableElement.style.left = randomX + "px";
+            draggableElement.style.top = randomY + "px";
+        });
+
+        // Random initial positions
+        window.onload = function() {
+            var buttons = document.querySelectorAll(".button");
+            buttons.forEach(function(button) {
+                var randomX = Math.random() * (window.innerWidth - button.offsetWidth);
+                var randomY = Math.random() * (window.innerHeight - button.offsetHeight);
+                button.style.left = randomX + "px";
+                button.style.top = randomY + "px";
+            });
+        };
+    </script>
+</body>
+</html>

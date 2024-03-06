@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>??????????????</title>
+</head>
+<style>
+    body {
+        background-image: url('what.gif');
+        font-family: "Comic Sans MS", cursive;
+        text-align: center;
+    }
+</style>
+<body>
+    <div style="text-align: center;">
+        <img width="400" src="roblox.png" alt="Your GIF">
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <form id="passwordForm">
+            <input type="password" id="passwordInput" placeholder="Password">
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <a href="main.html">
+        <!-- Replace 'example.gif' with the path to your GIF -->
+        <img src="button4.gif" style="position:relative;">
+        <span class="caption3" contenteditable="true" style="position:relative;">back</span>
+    </a>
+    <script>
+        document.getElementById("passwordForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            var password = document.getElementById("passwordInput").value;
+
+            if (password === "FFAOFJAJFISJFSE") {
+                window.location.href = "real.html"; // Redirect to a different website
+            } else {
+                alert("Wrong password. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>
