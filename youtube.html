@@ -37,6 +37,11 @@
     .reply {
       margin-left: 20px;
       font-style: italic;
+      border-left: 2px solid #ccc;
+      padding-left: 10px;
+    }
+    .reply-input {
+      margin-top: 10px;
     }
     #nameOverlay {
       position: fixed;
@@ -112,7 +117,6 @@
 
     // Variables
     let currentRoom = null;
-    let currentThreadId = null;
     let userName = '';
 
     // Function to set user name
@@ -127,29 +131,36 @@
       document.getElementById('messageInput').style.display = 'block';
     };
 
+    // Recursive function to render threads and replies
+    function renderMessages(messages, parentId = '') {
+      let html = '';
+      for (let messageId in messages) {
+        const message = messages[messageId];
+        html += `
+          <div class="message">
+            <div onclick="showReplyInput('${parentId}${messageId}/replies')">
+              ${message.user}: ${message.message}
+            </div>
+            <div id="replyInput-${parentId}${messageId}" class="reply-input" style="display: none;">
+              <textarea id="replyText-${parentId}${messageId}" placeholder="Type your reply..."></textarea>
+              <button onclick="sendReply('${parentId}${messageId}/replies')">Reply</button>
+            </div>
+            <div class="reply">
+              ${message.replies ? renderMessages(message.replies, `${parentId}${messageId}/replies/`) : ''}
+            </div>
+          </div>
+        `;
+      }
+      return html;
+    }
+
     // Function to load room threads
     window.loadRoom = function (roomId) {
       currentRoom = roomId; // Set the current room
-      currentThreadId = null; // Clear the current thread for replies
       const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
       onValue(threadsRef, (snapshot) => {
         const threads = snapshot.val();
-        let threadsHTML = '';
-        for (let threadId in threads) {
-          const thread = threads[threadId];
-          threadsHTML += `
-            <div class="message" onclick="replyToThread('${roomId}', '${threadId}')">
-              ${thread.user}: ${thread.message}
-              ${thread.replies ? Object.keys(thread.replies).map(replyId => `
-                <div class="reply">${thread.replies[replyId].user}: ${thread.replies[replyId].message}</div>
-              `).join('') : ''}
-              <div id="replyInput-${threadId}" style="display: none; margin-top: 10px;">
-                <textarea id="replyText-${threadId}" placeholder="Type your reply..."></textarea>
-                <button onclick="sendReply('${roomId}', '${threadId}')">Reply</button>
-              </div>
-            </div>
-          `;
-        }
+        const threadsHTML = renderMessages(threads || {});
         document.getElementById('threads').innerHTML = threadsHTML;
       });
     };
@@ -173,27 +184,25 @@
       document.getElementById('messageText').value = ''; // Clear input
     };
 
-    // Function to reply to a thread
-    window.replyToThread = function (roomId, threadId) {
-      currentRoom = roomId;
-      currentThreadId = threadId;
-      document.getElementById(`replyInput-${threadId}`).style.display = 'block';
+    // Function to show reply input
+    window.showReplyInput = function (replyPath) {
+      document.getElementById(`replyInput-${replyPath}`).style.display = 'block';
     };
 
     // Function to send a reply
-    window.sendReply = function (roomId, threadId) {
-      const replyText = document.getElementById(`replyText-${threadId}`).value.trim();
+    window.sendReply = function (replyPath) {
+      const replyText = document.getElementById(`replyText-${replyPath}`).value.trim();
       if (replyText === '') {
         alert('Reply cannot be empty.');
         return;
       }
-      const replyRef = push(ref(database, `rooms/${roomId}/threads/${threadId}/replies`));
+      const replyRef = push(ref(database, `rooms/${currentRoom}/threads/${replyPath}`));
       set(replyRef, {
         user: userName,
         message: replyText
       });
-      document.getElementById(`replyText-${threadId}`).value = ''; // Clear input
-      document.getElementById(`replyInput-${threadId}`).style.display = 'none'; // Hide reply input
+      document.getElementById(`replyText-${replyPath}`).value = ''; // Clear input
+      document.getElementById(`replyInput-${replyPath}`).style.display = 'none'; // Hide reply input
     };
   </script>
 </body>
