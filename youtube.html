@@ -5,110 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background-color: #f7f3e3;
+      background-color: #f4e1d2;
       color: black;
-      font-family: "Times New Roman", serif;
+      font-family: "Times New Roman", Times, serif;
       font-size: large;
-      text-align: center;
     }
-    #messageInput {
-      margin-top: 20px;
+    .reply {
+      margin-left: 20px;
     }
-    #messageText {
-      width: 80%;
-      height: 50px;
+
+    /* When hovering over the reply, the text will turn red */
+    .reply:hover {
+      color: red;
+      cursor: pointer;
     }
-    button:hover {
-      background-color: #d3d3d3;
+
+    .button {
+      margin: 5px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
     }
-    #backButton {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
+    .button:hover {
+      background-color: #45a049;
     }
   </style>
   <title>Forum</title>
 </head>
 <body>
-  <h1>Welcome to the forum, speak your mind!</h1>
+  <center><h1>Welcome to the forum, speak your mind!</h1></center>
 
-  <a href="main.html" id="backButton">
-    <img src="button3.gif" style="width: 50px; height: 50px;">
-    <span>Back!</span>
-  </a>
-
-  <!-- Room selection -->
-  <div id="rooms">
-    <button onclick="loadRoom('room1')">Room 1</button>
-    <button onclick="loadRoom('room2')">Room 2</button>
-  </div>
-
-  <!-- Displaying threads of a room -->
   <div id="threads">
     <!-- Threads will load here -->
   </div>
 
-  <!-- Input for new thread/message -->
   <div id="messageInput">
     <textarea id="messageText" placeholder="Type your message..."></textarea>
-    <button onclick="sendMessage()">Send</button>
+    <button class="button" onclick="sendMessage()">Send</button>
   </div>
 
-  <!-- Firebase SDK and app initialization -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-analytics.js";
-    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
+  <script>
+    // Your Firebase setup here...
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAEDU3db7MZzVn6IgN78YsoeApWMl-heRc",
-      authDomain: "huntwrs-forum.firebaseapp.com",
-      projectId: "huntwrs-forum",
-      storageBucket: "huntwrs-forum.firebasestorage.app",
-      messagingSenderId: "477924167422",
-      appId: "1:477924167422:web:008db15333077ac5b49faf",
-      measurementId: "G-883LSED10V"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const database = getDatabase(app);
-
-    // Function to load room threads
-    window.loadRoom = function(roomId) {
-      const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
-      onValue(threadsRef, (snapshot) => {
-        const threads = snapshot.val();
-        let threadsHTML = '';
-        for (let threadId in threads) {
-          threadsHTML += `
-            <div onclick="loadThread('${roomId}', '${threadId}')">
-              ${threads[threadId].user}: ${threads[threadId].message}
-            </div>
-          `;
-        }
-        document.getElementById('threads').innerHTML = threadsHTML;
-      });
-    };
-
-    // Function to send a new message
-    window.sendMessage = function() {
-      const messageText = document.getElementById('messageText').value;
-      const newThreadRef = push(ref(database, 'rooms/room1/threads'));
-      set(newThreadRef, {
-        user: 'User1',
-        message: messageText
-      });
-    };
-
-    // Function to load thread responses
     function loadThread(roomId, threadId) {
       const threadRef = ref(database, 'rooms/' + roomId + '/threads/' + threadId);
       onValue(threadRef, (snapshot) => {
         const thread = snapshot.val();
         let threadHTML = `<div>${thread.user}: ${thread.message}</div>`;
+        
+        if (thread.replies) {
+          for (let replyId in thread.replies) {
+            // Add class 'reply' for styling
+            threadHTML += `<div class="reply">${thread.replies[replyId].user}: ${thread.replies[replyId].message}</div>`;
+          }
+        }
+
+        threadHTML += `
+          <textarea id="replyMessage" placeholder="Reply..."></textarea>
+          <button class="button" onclick="sendReply('${roomId}', '${threadId}')">Send Reply</button>
+        `;
         document.getElementById('threads').innerHTML = threadHTML;
       });
+    }
+
+    function sendReply(roomId, threadId) {
+      const replyMessage = document.getElementById('replyMessage').value;
+      const newReplyRef = push(ref(database, 'rooms/' + roomId + '/threads/' + threadId + '/replies'));
+      set(newReplyRef, {
+        user: 'User' + getRandomUserId(),
+        message: replyMessage
+      });
+    }
+
+    function getRandomUserId() {
+      return Math.floor(Math.random() * 1000) + 1;
     }
   </script>
 </body>
