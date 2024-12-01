@@ -74,8 +74,12 @@
     const analytics = getAnalytics(app);
     const database = getDatabase(app);
 
+    // Variable to store the current room
+    let currentRoom = null;
+
     // Function to load room threads
     window.loadRoom = function(roomId) {
+      currentRoom = roomId; // Set the current room
       const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
       onValue(threadsRef, (snapshot) => {
         const threads = snapshot.val();
@@ -93,11 +97,23 @@
 
     // Function to send a new message
     window.sendMessage = function() {
+      if (!currentRoom) {
+        alert('Please select a room first.');
+        return;
+      }
       const messageText = document.getElementById('messageText').value;
-      const newThreadRef = push(ref(database, 'rooms/room1/threads'));
+      if (messageText.trim() === '') {
+        alert('Message cannot be empty.');
+        return;
+      }
+      const newThreadRef = push(ref(database, 'rooms/' + currentRoom + '/threads'));
       set(newThreadRef, {
-        user: 'User1',
+        user: 'User1', // Replace with dynamic user ID or name if needed
         message: messageText
+      }).then(() => {
+        document.getElementById('messageText').value = ''; // Clear the input after sending
+      }).catch((error) => {
+        console.error('Error sending message:', error);
       });
     };
 
