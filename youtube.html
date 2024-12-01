@@ -136,17 +136,18 @@
       let html = '';
       for (let messageId in messages) {
         const message = messages[messageId];
+        const replyPath = parentId + messageId;
         html += `
           <div class="message">
-            <div onclick="showReplyInput('${parentId}${messageId}/replies')">
+            <div onclick="showReplyInput('${replyPath}')">
               ${message.user}: ${message.message}
             </div>
-            <div id="replyInput-${parentId}${messageId}" class="reply-input" style="display: none;">
-              <textarea id="replyText-${parentId}${messageId}" placeholder="Type your reply..."></textarea>
-              <button onclick="sendReply('${parentId}${messageId}/replies')">Reply</button>
+            <div id="replyInput-${replyPath}" class="reply-input" style="display: none;">
+              <textarea id="replyText-${replyPath}" placeholder="Type your reply..."></textarea>
+              <button onclick="sendReply('${replyPath}')">Reply</button>
             </div>
             <div class="reply">
-              ${message.replies ? renderMessages(message.replies, `${parentId}${messageId}/replies/`) : ''}
+              ${message.replies ? renderMessages(message.replies, `${replyPath}/replies/`) : ''}
             </div>
           </div>
         `;
@@ -196,7 +197,7 @@
         alert('Reply cannot be empty.');
         return;
       }
-      const replyRef = push(ref(database, `rooms/${currentRoom}/threads/${replyPath}`));
+      const replyRef = push(ref(database, `rooms/${currentRoom}/threads/${replyPath}/replies`));
       set(replyRef, {
         user: userName,
         message: replyText
