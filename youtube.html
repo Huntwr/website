@@ -3,70 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forum</title>
   <style>
-    /* Basic styles to center content */
     body {
-      background-color: #f4e1d2;
+      background-color: #f7f3e3;
       color: black;
-      font-family: "Times New Roman", Times, serif;
+      font-family: "Times New Roman", serif;
       font-size: large;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
+      text-align: center;
     }
-
-    /* Simple button styling with no extra CSS */
-    .button {
-      margin: 5px;
-      padding: 10px;
-      background-color: transparent;
-      color: black;
-      border: 1px solid black;
-      cursor: pointer;
-    }
-
-    .button:hover {
-      background-color: #ddd;
-    }
-
-    /* Textarea for message */
     #messageInput {
       margin-top: 20px;
     }
-
-    textarea {
-      margin-top: 10px;
-      padding: 10px;
-      width: 300px;
-      height: 100px;
+    #messageText {
+      width: 80%;
+      height: 50px;
+    }
+    button:hover {
+      background-color: #d3d3d3;
+    }
+    #backButton {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
     }
   </style>
+  <title>Forum</title>
 </head>
 <body>
+  <h1>Welcome to the forum, speak your mind!</h1>
 
-  <center><h1>Welcome to the forum, speak your mind!</h1></center>
+  <a href="main.html" id="backButton">
+    <img src="button3.gif" style="width: 50px; height: 50px;">
+    <span>Back!</span>
+  </a>
 
-  <!-- Room selection buttons -->
+  <!-- Room selection -->
   <div id="rooms">
-    <button class="button" onclick="loadRoom('room1')">Room 1</button>
-    <button class="button" onclick="loadRoom('room2')">Room 2</button>
+    <button onclick="loadRoom('room1')">Room 1</button>
+    <button onclick="loadRoom('room2')">Room 2</button>
   </div>
 
-  <!-- Display threads here -->
-  <div id="threads"></div>
+  <!-- Displaying threads of a room -->
+  <div id="threads">
+    <!-- Threads will load here -->
+  </div>
 
-  <!-- Input for new messages -->
+  <!-- Input for new thread/message -->
   <div id="messageInput">
     <textarea id="messageText" placeholder="Type your message..."></textarea>
-    <button class="button" onclick="sendMessage()">Send</button>
+    <button onclick="sendMessage()">Send</button>
   </div>
 
+  <!-- Firebase SDK and app initialization -->
   <script type="module">
-    // Firebase initialization
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-analytics.js";
     import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
 
     const firebaseConfig = {
@@ -79,12 +70,12 @@
       measurementId: "G-883LSED10V"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const database = getDatabase(app);
 
-    // Function to load a specific room's threads
-    function loadRoom(roomId) {
+    // Function to load room threads
+    window.loadRoom = function(roomId) {
       const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
       onValue(threadsRef, (snapshot) => {
         const threads = snapshot.val();
@@ -98,56 +89,27 @@
         }
         document.getElementById('threads').innerHTML = threadsHTML;
       });
-    }
+    };
 
-    // Function to send a new message to the database
-    function sendMessage() {
+    // Function to send a new message
+    window.sendMessage = function() {
       const messageText = document.getElementById('messageText').value;
-      if (messageText.trim() !== "") {
-        const newThreadRef = push(ref(database, 'rooms/room1/threads'));
-        set(newThreadRef, {
-          user: 'User' + getRandomUserId(),
-          message: messageText
-        });
-      }
-    }
+      const newThreadRef = push(ref(database, 'rooms/room1/threads'));
+      set(newThreadRef, {
+        user: 'User1',
+        message: messageText
+      });
+    };
 
-    // Helper function to generate a random user ID
-    function getRandomUserId() {
-      return Math.floor(Math.random() * 1000) + 1;
-    }
-
-    // Function to load a specific thread's details
+    // Function to load thread responses
     function loadThread(roomId, threadId) {
       const threadRef = ref(database, 'rooms/' + roomId + '/threads/' + threadId);
       onValue(threadRef, (snapshot) => {
         const thread = snapshot.val();
         let threadHTML = `<div>${thread.user}: ${thread.message}</div>`;
-        
-        if (thread.replies) {
-          for (let replyId in thread.replies) {
-            threadHTML += `<div class="reply">${thread.replies[replyId].user}: ${thread.replies[replyId].message}</div>`;
-          }
-        }
-
-        threadHTML += `
-          <textarea id="replyMessage" placeholder="Reply..."></textarea>
-          <button class="button" onclick="sendReply('${roomId}', '${threadId}')">Send Reply</button>
-        `;
         document.getElementById('threads').innerHTML = threadHTML;
       });
     }
-
-    // Function to send a reply to a thread
-    function sendReply(roomId, threadId) {
-      const replyMessage = document.getElementById('replyMessage').value;
-      const newReplyRef = push(ref(database, 'rooms/' + roomId + '/threads/' + threadId + '/replies'));
-      set(newReplyRef, {
-        user: 'User' + getRandomUserId(),
-        message: replyMessage
-      });
-    }
   </script>
-
 </body>
 </html>
