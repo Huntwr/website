@@ -10,6 +10,7 @@
       font-family: "Times New Roman", serif;
       font-size: large;
       text-align: center;
+      margin: 0;
     }
     #messageInput {
       margin-top: 20px;
@@ -37,11 +38,35 @@
       margin-left: 20px;
       font-style: italic;
     }
+    #nameOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f7f3e3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #nameOverlay input {
+      padding: 10px;
+      font-size: large;
+      margin-bottom: 10px;
+    }
   </style>
   <title>Forum</title>
 </head>
 <body>
-  <h1>Welcome to the forum, speak your mind!</h1>
+  <div id="nameOverlay">
+    <h1>Welcome to Huntwrs Forum</h1>
+    <input type="text" id="nameInput" placeholder="Enter your name">
+    <button onclick="setUserName()">Enter</button>
+  </div>
+
+  <h1>Huntwrs Forum</h1>
 
   <a href="main.html" id="backButton">
     <img src="button3.gif" style="width: 50px; height: 50px;">
@@ -60,7 +85,7 @@
   </div>
 
   <!-- Input for new thread/message -->
-  <div id="messageInput">
+  <div id="messageInput" style="display: none;">
     <textarea id="messageText" placeholder="Type your message..."></textarea>
     <button onclick="sendMessage()">Send</button>
   </div>
@@ -85,12 +110,25 @@
     const analytics = getAnalytics(app);
     const database = getDatabase(app);
 
-    // Variable to store the current room and current thread for replies
+    // Variables
     let currentRoom = null;
     let currentThreadId = null;
+    let userName = '';
+
+    // Function to set user name
+    window.setUserName = function () {
+      const nameInput = document.getElementById('nameInput').value.trim();
+      if (nameInput === '') {
+        alert('Name cannot be empty.');
+        return;
+      }
+      userName = nameInput;
+      document.getElementById('nameOverlay').style.display = 'none';
+      document.getElementById('messageInput').style.display = 'block';
+    };
 
     // Function to load room threads
-    window.loadRoom = function(roomId) {
+    window.loadRoom = function (roomId) {
       currentRoom = roomId; // Set the current room
       currentThreadId = null; // Clear the current thread for replies
       const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
@@ -105,6 +143,10 @@
               ${thread.replies ? Object.keys(thread.replies).map(replyId => `
                 <div class="reply">${thread.replies[replyId].user}: ${thread.replies[replyId].message}</div>
               `).join('') : ''}
+              <div id="replyInput-${threadId}" style="display: none; margin-top: 10px;">
+                <textarea id="replyText-${threadId}" placeholder="Type your reply..."></textarea>
+                <button onclick="sendReply('${roomId}', '${threadId}')">Reply</button>
+              </div>
             </div>
           `;
         }
@@ -112,47 +154,46 @@
       });
     };
 
-    // Function to send a new message or reply
-    window.sendMessage = function() {
+    // Function to send a new message
+    window.sendMessage = function () {
       if (!currentRoom) {
         alert('Please select a room first.');
         return;
       }
-      const messageText = document.getElementById('messageText').value;
-      if (messageText.trim() === '') {
+      const messageText = document.getElementById('messageText').value.trim();
+      if (messageText === '') {
         alert('Message cannot be empty.');
         return;
       }
-
-      if (currentThreadId) {
-        // Replying to a thread
-        const replyRef = push(ref(database, `rooms/${currentRoom}/threads/${currentThreadId}/replies`));
-        set(replyRef, {
-          user: 'User1', // Replace with dynamic user ID or name if needed
-          message: messageText
-        });
-      } else {
-        // Creating a new thread
-        const newThreadRef = push(ref(database, `rooms/${currentRoom}/threads`));
-        set(newThreadRef, {
-          user: 'User1', // Replace with dynamic user ID or name if needed
-          message: messageText
-        });
-      }
-
-      document.getElementById('messageText').value = ''; // Clear the input after sending
-      currentThreadId = null; // Reset currentThreadId after reply
+      const newThreadRef = push(ref(database, `rooms/${currentRoom}/threads`));
+      set(newThreadRef, {
+        user: userName,
+        message: messageText
+      });
+      document.getElementById('messageText').value = ''; // Clear input
     };
 
     // Function to reply to a thread
-    window.replyToThread = function(roomId, threadId) {
+    window.replyToThread = function (roomId, threadId) {
       currentRoom = roomId;
       currentThreadId = threadId;
-      const threadRef = ref(database, `rooms/${roomId}/threads/${threadId}`);
-      onValue(threadRef, (snapshot) => {
-        const thread = snapshot.val();
-        alert(`Replying to: ${thread.user}: ${thread.message}`);
-      }, { onlyOnce: true });
+      document.getElementById(`replyInput-${threadId}`).style.display = 'block';
+    };
+
+    // Function to send a reply
+    window.sendReply = function (roomId, threadId) {
+      const replyText = document.getElementById(`replyText-${threadId}`).value.trim();
+      if (replyText === '') {
+        alert('Reply cannot be empty.');
+        return;
+      }
+      const replyRef = push(ref(database, `rooms/${roomId}/threads/${threadId}/replies`));
+      set(replyRef, {
+        user: userName,
+        message: replyText
+      });
+      document.getElementById(`replyText-${threadId}`).value = ''; // Clear input
+      document.getElementById(`replyInput-${threadId}`).style.display = 'none'; // Hide reply input
     };
   </script>
 </body>
