@@ -26,6 +26,17 @@
       bottom: 10px;
       right: 10px;
     }
+    .message {
+      padding: 10px;
+      cursor: pointer;
+    }
+    .message:hover {
+      color: red;
+    }
+    .reply {
+      margin-left: 20px;
+      font-style: italic;
+    }
   </style>
   <title>Forum</title>
 </head>
@@ -74,20 +85,26 @@
     const analytics = getAnalytics(app);
     const database = getDatabase(app);
 
-    // Variable to store the current room
+    // Variable to store the current room and current thread for replies
     let currentRoom = null;
+    let currentThreadId = null;
 
     // Function to load room threads
     window.loadRoom = function(roomId) {
       currentRoom = roomId; // Set the current room
+      currentThreadId = null; // Clear the current thread for replies
       const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
       onValue(threadsRef, (snapshot) => {
         const threads = snapshot.val();
         let threadsHTML = '';
         for (let threadId in threads) {
+          const thread = threads[threadId];
           threadsHTML += `
-            <div onclick="loadThread('${roomId}', '${threadId}')">
-              ${threads[threadId].user}: ${threads[threadId].message}
+            <div class="message" onclick="replyToThread('${roomId}', '${threadId}')">
+              ${thread.user}: ${thread.message}
+              ${thread.replies ? Object.keys(thread.replies).map(replyId => `
+                <div class="reply">${thread.replies[replyId].user}: ${thread.replies[replyId].message}</div>
+              `).join('') : ''}
             </div>
           `;
         }
@@ -95,7 +112,7 @@
       });
     };
 
-    // Function to send a new message
+    // Function to send a new message or reply
     window.sendMessage = function() {
       if (!currentRoom) {
         alert('Please select a room first.');
@@ -106,26 +123,37 @@
         alert('Message cannot be empty.');
         return;
       }
-      const newThreadRef = push(ref(database, 'rooms/' + currentRoom + '/threads'));
-      set(newThreadRef, {
-        user: 'User1', // Replace with dynamic user ID or name if needed
-        message: messageText
-      }).then(() => {
-        document.getElementById('messageText').value = ''; // Clear the input after sending
-      }).catch((error) => {
-        console.error('Error sending message:', error);
-      });
+
+      if (currentThreadId) {
+        // Replying to a thread
+        const replyRef = push(ref(database, `rooms/${currentRoom}/threads/${currentThreadId}/replies`));
+        set(replyRef, {
+          user: 'User1', // Replace with dynamic user ID or name if needed
+          message: messageText
+        });
+      } else {
+        // Creating a new thread
+        const newThreadRef = push(ref(database, `rooms/${currentRoom}/threads`));
+        set(newThreadRef, {
+          user: 'User1', // Replace with dynamic user ID or name if needed
+          message: messageText
+        });
+      }
+
+      document.getElementById('messageText').value = ''; // Clear the input after sending
+      currentThreadId = null; // Reset currentThreadId after reply
     };
 
-    // Function to load thread responses
-    function loadThread(roomId, threadId) {
-      const threadRef = ref(database, 'rooms/' + roomId + '/threads/' + threadId);
+    // Function to reply to a thread
+    window.replyToThread = function(roomId, threadId) {
+      currentRoom = roomId;
+      currentThreadId = threadId;
+      const threadRef = ref(database, `rooms/${roomId}/threads/${threadId}`);
       onValue(threadRef, (snapshot) => {
         const thread = snapshot.val();
-        let threadHTML = `<div>${thread.user}: ${thread.message}</div>`;
-        document.getElementById('threads').innerHTML = threadHTML;
-      });
-    }
+        alert(`Replying to: ${thread.user}: ${thread.message}`);
+      }, { onlyOnce: true });
+    };
   </script>
 </body>
 </html>
