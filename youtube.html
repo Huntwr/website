@@ -9,9 +9,11 @@
       color: black;
       font-family: "Times New Roman", Times, serif;
       font-size: large;
+      text-align: center;
     }
     .reply {
       margin-left: 20px;
+      color: black;
     }
 
     /* When hovering over the reply, the text will turn red */
@@ -29,14 +31,34 @@
       cursor: pointer;
       border-radius: 5px;
     }
+
     .button:hover {
       background-color: #45a049;
+    }
+
+    #messageInput {
+      margin-top: 20px;
+    }
+
+    #threads {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      width: 50%;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
   <title>Forum</title>
 </head>
 <body>
-  <center><h1>Welcome to the forum, speak your mind!</h1></center>
+  <h1>Welcome to the forum, speak your mind!</h1>
+
+  <div id="rooms">
+    <button class="button" onclick="loadRoom(1)">Room 1</button>
+    <button class="button" onclick="loadRoom(2)">Room 2</button>
+  </div>
 
   <div id="threads">
     <!-- Threads will load here -->
@@ -47,8 +69,38 @@
     <button class="button" onclick="sendMessage()">Send</button>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
   <script>
-    // Your Firebase setup here...
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-auth-domain",
+      databaseURL: "your-database-url",
+      projectId: "your-project-id",
+      storageBucket: "your-storage-bucket",
+      messagingSenderId: "your-sender-id",
+      appId: "your-app-id"
+    };
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    function loadRoom(roomId) {
+      const roomRef = ref(database, 'rooms/' + roomId);
+      onValue(roomRef, (snapshot) => {
+        const room = snapshot.val();
+        let roomHTML = `<h2>Room ${roomId}</h2><div id="threadsList">`;
+        for (let threadId in room.threads) {
+          roomHTML += `
+            <div>
+              <button class="button" onclick="loadThread(${roomId}, '${threadId}')">Thread ${threadId}</button>
+            </div>
+          `;
+        }
+        roomHTML += '</div>';
+        document.getElementById('threads').innerHTML = roomHTML;
+      });
+    }
 
     function loadThread(roomId, threadId) {
       const threadRef = ref(database, 'rooms/' + roomId + '/threads/' + threadId);
@@ -58,7 +110,6 @@
         
         if (thread.replies) {
           for (let replyId in thread.replies) {
-            // Add class 'reply' for styling
             threadHTML += `<div class="reply">${thread.replies[replyId].user}: ${thread.replies[replyId].message}</div>`;
           }
         }
@@ -68,6 +119,16 @@
           <button class="button" onclick="sendReply('${roomId}', '${threadId}')">Send Reply</button>
         `;
         document.getElementById('threads').innerHTML = threadHTML;
+      });
+    }
+
+    function sendMessage() {
+      const messageText = document.getElementById('messageText').value;
+      const roomId = 1; // Assuming the message is sent to Room 1
+      const newMessageRef = push(ref(database, 'rooms/' + roomId + '/threads'));
+      set(newMessageRef, {
+        user: 'User' + getRandomUserId(),
+        message: messageText
       });
     }
 
