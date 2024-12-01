@@ -5,100 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background-color: #f5f5dc; /* Cream color */
-      color: #000000; /* Black text */
-      font-family: "Times New Roman", Times, serif; /* Elegant font */
-      font-size: 20px;
-      margin: 0;
-      padding: 0;
-      text-align: center; /* Center all elements by default */
-    }
-    h1 {
-      font-size: 2.5em; /* Slightly larger title */
-      margin-top: 50px;
+      background-color: #f7f3e3;
+      color: black;
+      font-family: "Times New Roman", serif;
+      font-size: large;
       text-align: center;
-      font-family: "Times New Roman", Times, serif;
     }
     #messageInput {
       margin-top: 20px;
-      text-align: center;
     }
     #messageText {
-      width: 60%;
+      width: 80%;
       height: 50px;
-      font-family: "Times New Roman", Times, serif;
-      font-size: 18px;
-      margin-bottom: 10px;
-      padding: 10px;
-      border: 2px solid #000000;
-      border-radius: 5px;
-    }
-    button {
-      font-family: "Times New Roman", Times, serif;
-      font-size: 18px;
-      padding: 10px;
-      background-color: #333333; /* Dark background for buttons */
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      margin-top: 10px;
     }
     button:hover {
-      background-color: #555555; /* Darker gray on hover */
-      transform: scale(1.1); /* Slight button hover effect */
+      background-color: #d3d3d3;
     }
-    #rooms {
-      display: flex;
-      justify-content: center; /* Center room buttons */
-      gap: 20px; /* Add spacing between buttons */
-      margin-top: 30px;
-    }
-    #rooms button {
-      font-size: 20px;
-      padding: 15px 25px;
-      background-color: #444444;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-    #rooms button:hover {
-      background-color: #666666; /* Hover effect for room buttons */
-      transform: scale(1.05);
-    }
-    #gifButtonContainer {
+    #backButton {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      text-align: center;
-    }
-    #gifButton {
-      width: 55px; /* Small size for the gif button */
-      height: 55px;
-    }
-    #gifButton span {
-      display: block;
-      font-size: 12px;
-      color: #ffffff;
-      font-family: "Times New Roman", Times, serif;
-      margin-top: 5px; /* Adds space between gif and text */
+      bottom: 10px;
+      right: 10px;
     }
   </style>
   <title>Forum</title>
 </head>
 <body>
-  <h1>Huntwrs forum!!!</h1>
+  <h1>Welcome to the forum, speak your mind!</h1>
 
-  <!-- Back button with gif at bottom-right -->
-  <div id="gifButtonContainer">
-    <a href="main.html">
-      <img src="button3.gif" id="gifButton">
-      <span class="caption3" contenteditable="true">Back!</span>
-    </a>
-  </div>
+  <a href="main.html" id="backButton">
+    <img src="button3.gif" style="width: 50px; height: 50px;">
+    <span>Back!</span>
+  </a>
 
   <!-- Room selection -->
   <div id="rooms">
@@ -123,12 +60,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-analytics.js"></script>
 
   <script>
-    // Import the functions you need from the SDKs you need
+    // Import necessary Firebase functions
     import { initializeApp } from "firebase/app";
     import { getAnalytics } from "firebase/analytics";
     import { getDatabase, ref, set, push, onValue } from "firebase/database";
 
-    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAEDU3db7MZzVn6IgN78YsoeApWMl-heRc",
       authDomain: "huntwrs-forum.firebaseapp.com",
@@ -139,7 +75,6 @@
       measurementId: "G-883LSED10V"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const database = getDatabase(app);
@@ -166,7 +101,7 @@
       const messageText = document.getElementById('messageText').value;
       const newThreadRef = push(ref(database, 'rooms/room1/threads'));
       set(newThreadRef, {
-        user: 'User1', // Replace with dynamic user data
+        user: 'User1',
         message: messageText
       });
     }
