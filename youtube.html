@@ -5,37 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forum</title>
   <style>
-    /* Body style */
+    /* Basic styles to center content */
     body {
       background-color: #f4e1d2;
       color: black;
       font-family: "Times New Roman", Times, serif;
       font-size: large;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
     }
 
-    /* Button style */
+    /* Simple button styling with no extra CSS */
     .button {
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: black;
-      color: white;
-      border: 2px solid black;
-      border-radius: 5px;
+      margin: 5px;
+      padding: 10px;
+      background-color: transparent;
+      color: black;
+      border: 1px solid black;
       cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
     }
 
     .button:hover {
-      background-color: white;
-      color: black;
-      border: 2px solid white;
+      background-color: #ddd;
     }
 
-    /* Styling for text that is red on hover */
-    .reply:hover {
-      color: red;
-      cursor: pointer;
+    /* Textarea for message */
+    #messageInput {
+      margin-top: 20px;
+    }
+
+    textarea {
+      margin-top: 10px;
+      padding: 10px;
+      width: 300px;
+      height: 100px;
     }
   </style>
 </head>
@@ -49,10 +55,10 @@
     <button class="button" onclick="loadRoom('room2')">Room 2</button>
   </div>
 
-  <div id="threads">
-    <!-- Threads will load here -->
-  </div>
+  <!-- Display threads here -->
+  <div id="threads"></div>
 
+  <!-- Input for new messages -->
   <div id="messageInput">
     <textarea id="messageText" placeholder="Type your message..."></textarea>
     <button class="button" onclick="sendMessage()">Send</button>
@@ -72,9 +78,11 @@
       measurementId: "G-883LSED10V"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
+    // Function to load a specific room's threads
     function loadRoom(roomId) {
       const threadsRef = ref(database, 'rooms/' + roomId + '/threads');
       onValue(threadsRef, (snapshot) => {
@@ -91,19 +99,24 @@
       });
     }
 
+    // Function to send a new message to the database
     function sendMessage() {
       const messageText = document.getElementById('messageText').value;
-      const newThreadRef = push(ref(database, 'rooms/room1/threads'));
-      set(newThreadRef, {
-        user: 'User' + getRandomUserId(),
-        message: messageText
-      });
+      if (messageText.trim() !== "") {
+        const newThreadRef = push(ref(database, 'rooms/room1/threads'));
+        set(newThreadRef, {
+          user: 'User' + getRandomUserId(),
+          message: messageText
+        });
+      }
     }
 
+    // Helper function to generate a random user ID
     function getRandomUserId() {
       return Math.floor(Math.random() * 1000) + 1;
     }
 
+    // Function to load a specific thread's details
     function loadThread(roomId, threadId) {
       const threadRef = ref(database, 'rooms/' + roomId + '/threads/' + threadId);
       onValue(threadRef, (snapshot) => {
@@ -124,6 +137,7 @@
       });
     }
 
+    // Function to send a reply to a thread
     function sendReply(roomId, threadId) {
       const replyMessage = document.getElementById('replyMessage').value;
       const newReplyRef = push(ref(database, 'rooms/' + roomId + '/threads/' + threadId + '/replies'));
