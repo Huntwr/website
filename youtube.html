@@ -56,26 +56,19 @@
       align-items: center;
       z-index: 1000;
     }
-    #nameOverlay input {
-      padding: 10px;
-      font-size: large;
-      margin-bottom: 10px;
-    }
   </style>
   <title>Forum</title>
 </head>
 <body>
   <div id="nameOverlay">
-    <h1>Welcome to Huntwrs Forum</h1>
-    <input type="text" id="nameInput" placeholder="Enter your name">
-    <button onclick="setUserName()">Enter</button>
+    <h1>Loading Forum...</h1>
   </div>
 
-  <h1>Huntwrs Forum</h1>
+  <h1>Huntwr's Forum</h1>
 
-  <a href="main.html" id="backButton">
+  <a href="index.html" id="backButton">
     <img src="button3.gif" style="width: 50px; height: 50px;">
-    <span>Back!</span>
+    <span>Back</span>
   </a>
 
   <!-- Room selection -->
@@ -85,9 +78,7 @@
   </div>
 
   <!-- Displaying threads of a room -->
-  <div id="threads">
-    <!-- Threads will load here -->
-  </div>
+  <div id="threads"></div>
 
   <!-- Input for new thread/message -->
   <div id="messageInput" style="display: none;">
@@ -95,10 +86,9 @@
     <button onclick="sendMessage()">Send</button>
   </div>
 
-  <!-- Firebase SDK and app initialization -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-analytics.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
     import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
 
     const firebaseConfig = {
@@ -112,24 +102,26 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
     const database = getDatabase(app);
 
     // Variables
     let currentRoom = null;
     let userName = '';
 
-    // Function to set user name
-    window.setUserName = function () {
-      const nameInput = document.getElementById('nameInput').value.trim();
-      if (nameInput === '') {
-        alert('Name cannot be empty.');
-        return;
+    // Function to fetch logged-in user's details
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const userRef = ref(database, 'users/' + user.uid);
+        onValue(userRef, (snapshot) => {
+          userName = snapshot.val().username;
+          document.getElementById('nameOverlay').style.display = 'none';
+          document.getElementById('messageInput').style.display = 'block';
+        });
+      } else {
+        window.location.href = "index.html";
       }
-      userName = nameInput;
-      document.getElementById('nameOverlay').style.display = 'none';
-      document.getElementById('messageInput').style.display = 'block';
-    };
+    });
 
     // Recursive function to render threads and replies
     function renderMessages(messages, parentId = '') {
